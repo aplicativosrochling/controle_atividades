@@ -754,53 +754,38 @@ function renderTbl(){
 
   // TABLE headers
   const thead=document.getElementById('thead');
-  thead.innerHTML=`<tr>${COLS.map(c=>`<th${c.k===SF?' class="srt"':''}><div class="thi" onclick="tSort('${c.k}')"><span class="th-t">${c.lb}</span><span class="th-s">${c.k===SF?SD>0?'▲':'▼':''}</span></div>${c.k==='responsavel'?`<button class="th-fb ${CF[c.k]?'act':''}" onclick="openCfp('${c.k}',this)">▼</button>`:''}</th>`).join('')}<th></th></tr>`;
+  thead.innerHTML='<tr>'+COLS.map(c=>{
+    const sorted=c.k===SF?' class="srt"':'';
+    const arrow=c.k===SF?(SD>0?'▲':'▼'):'';
+    const filter=c.k==='responsavel'?'<button class="th-fb '+(CF[c.k]?'act':'')+'" onclick="openCfp(\''+c.k+'\',this)">▼</button>':'';
+    return '<th'+sorted+'><div class="thi" onclick="tSort(\''+c.k+'\')"><span class="th-t">'+c.lb+'</span><span class="th-s">'+arrow+'</span></div>'+filter+'</th>';
+  }).join('')+'<th></th></tr>';
   
   // TABLE body
   const tbody=document.getElementById('tbody');
   if(!sl.length){
-    tbody.innerHTML=`<tr><td colspan="100%" style="text-align:center;padding:40px;color:var(--tx3)">📭 Nenhum registro</td></tr>`;
+    tbody.innerHTML='<tr><td colspan="100%" style="text-align:center;padding:40px;color:var(--tx3)">📭 Nenhum registro</td></tr>';
   } else {
-    tbody.innerHTML=sl.map(r=>`<tr>${COLS.map(c=>{
-      const val=r[c.k]??'';
-      const disp=c.badge&&val?c.badge(val):(c.fmt?c.fmt(val):escapeHtml(val||'—'));
-      const tip=!c.badge&&String(val).length>22?` title="${escapeHtml(String(val))}"`:'';
-      return`<td class="${c.mono?'mn':''}"${tip}>${disp}</td>`;
-    }).join('')}+`<td class="act-col">
-      <button class="bic" onclick="openModal(${r.id})" title="Editar">✏️</button>
-      <button class="bic del" onclick="delRec(${r.id})" title="Remover">🗑</button>
-    </td></tr>`).join('');
+    tbody.innerHTML=sl.map(r=>{
+      const cells=COLS.map(c=>{
+        const val=r[c.k]??'';
+        const disp=c.badge&&val?c.badge(val):(c.fmt?c.fmt(val):escapeHtml(val||'—'));
+        const tip=!c.badge&&String(val).length>22?' title="'+escapeHtml(String(val))+'"':'';
+        return'<td class="'+(c.mono?'mn':'')+'"'+tip+'>'+disp+'</td>';
+      }).join('');
+      return'<tr>'+cells+'<td class="act-col"><button class="bic" onclick="openModal('+r.id+')" title="Editar">✏️</button><button class="bic del" onclick="delRec('+r.id+')" title="Remover">🗑</button></td></tr>';
+    }).join('');
   }
 
   // MOBILE cards
   const mc=document.getElementById('mobCards');
   if(!sl.length){
-    mc.innerHTML=`<div class="empty"><div class="empty-ic">📭</div>Nenhum registro</div>`;
+    mc.innerHTML='<div class="empty"><div class="empty-ic">📭</div>Nenhum registro</div>';
   } else {
-    mc.innerHTML=sl.map(r=>`
-      <div class="mob-card">
-        <div class="mob-card-top">
-          <span class="mob-card-id">#${r.id} · ${fd(r.data)}</span>
-          ${pbdg(r.pecaLiberada)}
-        </div>
-        <div class="mob-card-desc">${escapeHtml(r.descricao||'—')}</div>
-        <div class="mob-card-body">
-          <div class="mob-f"><span class="mob-fl">Responsável</span><span class="mob-fv">${escapeHtml(r.responsavel||'—')}</span></div>
-          <div class="mob-f"><span class="mob-fl">Turno</span><span class="mob-fv">${escapeHtml(r.turno||'—')}</span></div>
-          <div class="mob-f"><span class="mob-fl">Início</span><span class="mob-fv">${escapeHtml(r.inicio||'—')}</span></div>
-          <div class="mob-f"><span class="mob-fl">Duração</span><span class="mob-fv">${fmtMin(r.duracao)}</span></div>
-          <div class="mob-f"><span class="mob-fl">Código/PN</span><span class="mob-fv">${escapeHtml(r.codigo||'—')}</span></div>
-          <div class="mob-f"><span class="mob-fl">Tipo</span><span class="mob-fv" style="white-space:normal;font-family:inherit;font-size:11px">${escapeHtml(r.tipoLiberacao||'—')}</span></div>
-        </div>
-        ${r.obs?`<div style="margin-top:8px;font-size:11px;color:var(--tx3)">💬 ${escapeHtml(r.obs)}</div>`:''}
-        <div class="mob-card-foot">
-          ${sbdg(r.status)}
-          <div class="mob-actions">
-            <button class="bic" onclick="openModal(${r.id})">✏️</button>
-            <button class="bic del" onclick="delRec(${r.id})">🗑</button>
-          </div>
-        </div>
-      </div>`).join('');
+    mc.innerHTML=sl.map(r=>{
+      const obsDiv=r.obs?'<div style="margin-top:8px;font-size:11px;color:var(--tx3)">💬 '+escapeHtml(r.obs)+'</div>':'';
+      return'<div class="mob-card"><div class="mob-card-top"><span class="mob-card-id">#'+r.id+' · '+fd(r.data)+'</span>'+pbdg(r.pecaLiberada)+'</div><div class="mob-card-desc">'+escapeHtml(r.descricao||'—')+'</div><div class="mob-card-body"><div class="mob-f"><span class="mob-fl">Responsável</span><span class="mob-fv">'+escapeHtml(r.responsavel||'—')+'</span></div><div class="mob-f"><span class="mob-fl">Turno</span><span class="mob-fv">'+escapeHtml(r.turno||'—')+'</span></div><div class="mob-f"><span class="mob-fl">Início</span><span class="mob-fv">'+escapeHtml(r.inicio||'—')+'</span></div><div class="mob-f"><span class="mob-fl">Duração</span><span class="mob-fv">'+fmtMin(r.duracao)+'</span></div><div class="mob-f"><span class="mob-fl">Código/PN</span><span class="mob-fv">'+escapeHtml(r.codigo||'—')+'</span></div><div class="mob-f"><span class="mob-fl">Tipo</span><span class="mob-fv" style="white-space:normal;font-family:inherit;font-size:11px">'+escapeHtml(r.tipoLiberacao||'—')+'</span></div></div>'+obsDiv+'<div class="mob-card-foot">'+sbdg(r.status)+'<div class="mob-actions"><button class="bic" onclick="openModal('+r.id+')">✏️</button><button class="bic del" onclick="delRec('+r.id+')">🗑</button></div></div></div>';
+    }).join('');
   }
 
   // pagination
@@ -889,7 +874,8 @@ function renderCfpItems(vals,act,col){
   if(!vals.length){ls.innerHTML='<div class="cfp-em">Sem valores</div>';return;}
   ls.innerHTML=vals.map(v=>{
     const lbl=(col&&col.fmt&&v!=='')?col.fmt(v):v===''?'(vazio)':v;
-    return`<label class="cfp-it"><input type="checkbox" class="cfcb" value="${escapeHtml(v)}" ${!act||act.has(v)?'checked':''}><span>${escapeHtml(lbl)}</span></label>`;
+    const checked=!act||act.has(v)?'checked':'';
+    return'<label class="cfp-it"><input type="checkbox" class="cfcb" value="'+escapeHtml(v)+'" '+checked+'><span>'+escapeHtml(lbl)+'</span></label>';
   }).join('');
 }
 
@@ -1009,12 +995,10 @@ async function delRec(id){
 const LL={tipoLiberacao:'Tipo de Liberação',pecaLiberada:'Peça Liberada?',responsavel:'Responsável',status:'Status',turno:'Turno'};
 
 function renderListas(){
-  document.getElementById('lgrid').innerHTML=Object.keys(AD.listas).map(k=>`
-    <div class="lcard">
-      <div class="lch">${escapeHtml(LL[k]||k)}<span style="font-size:10px;color:var(--tx3);font-weight:400">${AD.listas[k].length} itens</span></div>
-      ${AD.listas[k].map((v,i)=>`<div class="li"><input value="${escapeHtml(v)}" onchange="updLi('${k}',${i},this.value)"><button class="bic del" onclick="remLi('${k}',${i})">✕</button></div>`).join('')}
-      <div class="ladd"><input type="text" placeholder="Novo item..." id="la_${k}" onkeydown="if(event.key==='Enter')addLi('${k}')"><button class="bla" onclick="addLi('${k}')">+</button></div>
-    </div>`).join('');
+  document.getElementById('lgrid').innerHTML=Object.keys(AD.listas).map(k=>{
+    const items=AD.listas[k].map((v,i)=>'<div class="li"><input value="'+escapeHtml(v)+'" onchange="updLi(\''+k+'\','+i+',this.value)"><button class="bic del" onclick="remLi(\''+k+'\','+i+')">✕</button></div>').join('');
+    return'<div class="lcard"><div class="lch">'+escapeHtml(LL[k]||k)+'<span style="font-size:10px;color:var(--tx3);font-weight:400">'+AD.listas[k].length+' itens</span></div>'+items+'<div class="ladd"><input type="text" placeholder="Novo item..." id="la_'+k+'" onkeydown="if(event.key===\'Enter\')addLi(\''+k+'\')"><button class="bla" onclick="addLi(\''+k+'\')">+</button></div></div>';
+  }).join('');
 }
 
 async function updLi(k,i,v){
@@ -1042,7 +1026,7 @@ async function addLi(k){
 
 // ══ INSTRUCOES ══
 function renderInst(){
-  document.getElementById('igrid').innerHTML=INST.map(i=>`<div class="icard"><div class="i-lbl">🔹 ${escapeHtml(i.c)}</div><div class="i-txt">${escapeHtml(i.t)}</div></div>`).join('');
+  document.getElementById('igrid').innerHTML=INST.map(i=>'<div class="icard"><div class="i-lbl">🔹 '+escapeHtml(i.c)+'</div><div class="i-txt">'+escapeHtml(i.t)+'</div></div>').join('');
 }
 
 // ══ EXPORT CSV ══
